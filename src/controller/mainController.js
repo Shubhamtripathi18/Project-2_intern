@@ -6,12 +6,14 @@ const createCollege = async function(req, res){
         const CollegeDetails = req.body
         const name = CollegeDetails.name
         const fullName = CollegeDetails.fullName
-        // const logoLink = internDetails.logoLink
+        const logoLink = CollegeDetails.logoLink
         if (Object.entries(CollegeDetails).length === 0) {
             res.status(400).send({ status: false, msg: "please provide college details." })}
         if (!name){return res.status(400).send({status:false, msg:"please provide the name of college."})}
+        const duplicateName = await collegeModel.findOne({name: name})
+        if (duplicateName){return res.status(400).send({status:false,msg:"college already present "})}
         if (!fullName){return res.status(400).send({status:false, msg:"please provide the full name of the college."})}
-        // if (!logoLink){return res.status(400).send({status:false, msg:"please provide the logo link."})}
+        if (!logoLink){return res.status(400).send({status:false, msg:"please provide the logo link."})}
         const saveDetails = await collegeModel.create(CollegeDetails)
         res.status(201).send({status:true, msg:"Collage Details stored successfully", data:saveDetails})
     }
@@ -32,11 +34,15 @@ const createIntern = async function(req, res){
         if(!(/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/.test(email))){
             return res.status(400).send({status:false,msg:"please provide valid email"})
         }
+        const duplicateEmail = await internModel.findOne({email:email})
+        if(duplicateEmail){return res.status(400).send({status:false,msg:"intern already present with this Email"})}
         if (!collegeId){return res.status(400).send({status:false, msg:"please provide the college Id."})}
         if (!mobile){return res.status(400).send({status:false, msg:"please provide the mobile number."})}
         if(!(/^(?!0+$)(\+\d{1,3}[- ]?)?(?!0+$)\d{10}$/.test(mobile))){
             return res.status(400).send({status:false,msg:"please provide valid mobile number"})
         }
+        const duplicateMobile = await internModel.findOne({mobile:mobile})
+        if (duplicateMobile){return res.status(400).send({status:false,msg:"intern already present with this mobile number"})}
         const validCollegeId = await collegeModel.findById(collegeId)
         if(!validCollegeId){return res.status(400).send({status:false,msg:"Invalid College Id"})}
         const saveDetails = await internModel.create(internDetails)
@@ -57,6 +63,7 @@ const getCollegeDetails = async function(req, res){
         if(allInterns.length == 0){
             return res.status(404).send({status:false, msg:"no Intern found with the provided college name."})}
         const finalCollegeData = {
+            
             name : findCollege.name,
             fullName : findCollege.fullName,
             interests : allInterns
@@ -68,4 +75,4 @@ const getCollegeDetails = async function(req, res){
 
 module.exports.createIntern = createIntern;
 module.exports.createCollege = createCollege;
-m
+module.exports.getCollegeDetails = getCollegeDetails;
